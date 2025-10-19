@@ -15,7 +15,7 @@ Build privacy-preserving blockchain applications with ease. Get started in **les
 
 This project is submitted for the **Zama FHEVM SDK Competition**.
 
-- **Video Demo**: [Watch Here](./demo.mp4)
+- **Video Demo**: [Watch Here](demo1.mp4 demo2.mp4 demo3.mp4)
 - **Live Demo**: [Property Valuation Example](https://wymanmills.github.io/fhePropertyValuation/)
 - **Documentation**: [Complete SDK Docs](./packages/fhevm-sdk/README.md)
 
