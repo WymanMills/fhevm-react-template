@@ -200,11 +200,7 @@ main()
 ### Core Concepts
 
 1. **[Getting Started](./packages/fhevm-sdk/docs/GETTING_STARTED.md)** - Installation and basic setup
-2. **[API Reference](./packages/fhevm-sdk/docs/API_REFERENCE.md)** - Complete API documentation
-3. **[Encryption Guide](./packages/fhevm-sdk/docs/ENCRYPTION.md)** - How to encrypt data
-4. **[Decryption Guide](./packages/fhevm-sdk/docs/DECRYPTION.md)** - How to decrypt data
-5. **[Permissions](./packages/fhevm-sdk/docs/PERMISSIONS.md)** - Managing access control
-6. **[Examples](./examples/README.md)** - Working code examples
+2. **[Examples](./examples/README.md)** - Working code examples
 
 ### SDK Structure
 
@@ -462,7 +458,7 @@ import { createFhevmInstance } from 'fhevm-sdk/node'
 
 ## 🎬 Video Demonstration
 
-**[Watch the Demo Video](./demo.mp4)**
+**[Watch the Demo Video](demo1.mp4 demo2.mp4 demo3.mp4)**
 
 The video covers:
 1. Quick installation and setup (< 2 minutes)
@@ -479,21 +475,10 @@ The video covers:
 
 ### Production Deployments
 
-1. **Property Valuation System**
-   - Live: https://property-valuation.vercel.app
+**Property Valuation System**
+   - Live: https://wymanmills.github.io/fhePropertyValuation/
    - Source: `./examples/property-valuation/`
 
-2. **Next.js Demo**
-   - Live: https://fhevm-nextjs-demo.vercel.app
-   - Source: `./examples/nextjs-demo/`
-
-3. **React Demo**
-   - Live: https://fhevm-react-demo.vercel.app
-   - Source: `./examples/react-demo/`
-
-4. **Vue Demo**
-   - Live: https://fhevm-vue-demo.vercel.app
-   - Source: `./examples/vue-demo/`
 
 ---
 
@@ -518,7 +503,7 @@ The video covers:
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/fhevm-sdk.git
+git clone https://github.com/WymanMills/fhevm-react-template/fhevm-sdk.git
 cd fhevm-sdk
 
 # Install dependencies
@@ -554,8 +539,6 @@ npm run test:coverage
 
 We welcome contributions! Please see:
 - [Contributing Guidelines](./CONTRIBUTING.md)
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Development Setup](./packages/fhevm-sdk/docs/DEVELOPMENT.md)
 
 ---
 
@@ -577,8 +560,8 @@ MIT License - see [LICENSE](./LICENSE) file for details
 
 - **Documentation**: [./packages/fhevm-sdk/README.md](./packages/fhevm-sdk/README.md)
 - **Examples**: [./examples/README.md](./examples/README.md)
-- **Issues**: [GitHub Issues](https://github.com/your-username/fhevm-sdk/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/fhevm-sdk/discussions)
+- **Issues**: [GitHub Issues](https://github.com/WymanMills/fhevm-react-template/fhevm-sdk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/WymanMills/fhevm-react-template/fhevm-sdk/discussions)
 - **Zama Discord**: [Join Community](https://discord.gg/zama)
 
 ---
