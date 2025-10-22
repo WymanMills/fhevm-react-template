@@ -560,8 +560,6 @@ MIT License - see [LICENSE](./LICENSE) file for details
 
 - **Documentation**: [./packages/fhevm-sdk/README.md](./packages/fhevm-sdk/README.md)
 - **Examples**: [./examples/README.md](./examples/README.md)
-- **Issues**: [GitHub Issues](https://github.com/WymanMills/fhevm-react-template/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/WymanMills/fhevm-react-template/discussions)
 - **Zama Discord**: [Join Community](https://discord.gg/zama)
 
 ---
