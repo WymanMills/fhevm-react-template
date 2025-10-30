@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential Property Valuation System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" integrity="sha512-JNGzaLU3tnzvmC4WOCNjf5jKOFEBZRDHpbJnMxzl7xW7A6eIzCryDI+qMDf5aKPkK/hUOaKGwb5wnZgMKyFTdOQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        // Fallback CDN if primary fails
+        if (typeof ethers === 'undefined') {
+            document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #4a5568;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-box {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .status-connected {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .status-error {
+            border-color: #f56565;
+            background: #fed7d7;
+        }
+
+        .property-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .valuation-item {
+            background: #fff5f5;
+            border-left: 4px solid #764ba2;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column, .three-column {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .info-text {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #2b6cb0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Confidential Property Valuation System</h1>
+            <p>Privacy-Preserving Real Estate Assessment Platform</p>
+        </div>
+
+        <div id="connectionStatus" class="status-box">
+            <strong>Connection Status:</strong> <span id="statusText">Not Connected</span>
+        </div>
+
+        <div class="card">
+            <button id="connectWallet" class="btn">Connect MetaMask Wallet</button>
+            <button id="switchNetwork" class="btn btn-secondary hidden">Switch to Sepolia</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2 class="section-title">📝 Register Property</h2>
+                <div class="info-text">
+                    Register your property with encrypted details. All sensitive information is protected using FHE encryption.
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyArea">Area (square meters):</label>
+                    <input type="number" id="propertyArea" min="1" placeholder="e.g., 120">
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="propertyBedrooms">Bedrooms:</label>
+                        <input type="number" id="propertyBedrooms" min="0" placeholder="e.g., 3">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propertyBathrooms">Bathrooms:</label>
+                        <input type="number" id="propertyBathrooms" min="0" placeholder="e.g., 2">
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="propertyYearBuilt">Year Built:</label>
+                        <input type="number" id="propertyYearBuilt" min="1800" max="2024" placeholder="e.g., 2010">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propertyFloorLevel">Floor Level:</label>
+                        <input type="number" id="propertyFloorLevel" min="0" placeholder="e.g., 5">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="propertyLocationScore">Location Score (1-100):</label>
+                    <input type="number" id="propertyLocationScore" min="1" max="100" placeholder="e.g., 85">
+                </div>
+
+                <button id="registerProperty" class="btn">Register Property</button>
+
+                <div class="loading" id="registerLoading">
+                    <div class="spinner"></div>
+                    <p>Registering property on blockchain...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title">💰 Submit Valuation</h2>
+                <div class="info-text">
+                    Authorized valuators can submit encrypted property valuations.
+                </div>
+
+                <div class="form-group">
+                    <label for="valuationPropertyId">Property ID:</label>
+                    <input type="number" id="valuationPropertyId" min="1" placeholder="e.g., 1">
+                </div>
+
+                <div class="form-group">
+                    <label for="valuationAmount">Estimated Value (USD):</label>
+                    <input type="number" id="valuationAmount" min="1" placeholder="e.g., 500000">
+                </div>
+
+                <div class="form-group">
+                    <label for="valuationConfidence">Confidence Score (1-100):</label>
+                    <input type="number" id="valuationConfidence" min="1" max="100" placeholder="e.g., 90">
+                </div>
+
+                <button id="submitValuation" class="btn">Submit Valuation</button>
+
+                <div class="loading" id="valuationLoading">
+                    <div class="spinner"></div>
+                    <p>Submitting encrypted valuation...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2 class="section-title">📊 View Properties</h2>
+                <div class="info-text">
+                    View properties you own and their valuation history.
+                </div>
+
+                <button id="loadProperties" class="btn">Load My Properties</button>
+
+                <div class="loading" id="propertiesLoading">
+                    <div class="spinner"></div>
+                    <p>Loading properties...</p>
+                </div>
+
+                <div id="propertiesList"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title">🔍 Valuation Management</h2>
+                <div class="info-text">
+                    Request revelation of valuations and view average estimates.
+                </div>
+
+                <div class="form-group">
+                    <label for="revealValuationId">Valuation ID:</label>
+                    <input type="number" id="revealValuationId" min="1" placeholder="e.g., 1">
+                </div>
+
+                <button id="revealValuation" class="btn">Request Valuation Reveal</button>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label for="averagePropertyId">Property ID for Average:</label>
+                    <input type="number" id="averagePropertyId" min="1" placeholder="e.g., 1">
+                </div>
+
+                <button id="getAverage" class="btn">Get Average Valuation</button>
+
+                <div class="loading" id="managementLoading">
+                    <div class="spinner"></div>
+                    <p>Processing request...</p>
+                </div>
+
+                <div id="managementResults"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">⚙️ Admin Functions</h2>
+            <div class="info-text">
+                Contract owner can manage valuator authorizations.
+            </div>
+
+            <div class="form-group">
+                <label for="valuatorAddress">Valuator Address:</label>
+                <input type="text" id="valuatorAddress" placeholder="0x...">
+            </div>
+
+            <button id="authorizeValuator" class="btn">Authorize Valuator</button>
+            <button id="revokeValuator" class="btn btn-secondary">Revoke Valuator</button>
+
+            <div class="loading" id="adminLoading">
+                <div class="spinner"></div>
+                <p>Processing admin action...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONTRACT_ADDRESS = '0x3836e3A8DF48cdcd2b10E0f81Cd88A49A0bDB691';
+        const CONTRACT_ABI = [
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint32", "name": "_area", "type": "uint32"},
+                    {"internalType": "uint32", "name": "_bedrooms", "type": "uint32"},
+                    {"internalType": "uint32", "name": "_bathrooms", "type": "uint32"},
+                    {"internalType": "uint32", "name": "_yearBuilt", "type": "uint32"},
+                    {"internalType": "uint32", "name": "_floorLevel", "type": "uint32"},
+                    {"internalType": "uint32", "name": "_locationScore", "type": "uint32"}
+                ],
+                "name": "registerProperty",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "propertyId", "type": "uint256"},
+                    {"internalType": "uint64", "name": "_estimatedValue", "type": "uint64"},
+                    {"internalType": "uint32", "name": "_confidenceScore", "type": "uint32"}
+                ],
+                "name": "submitValuation",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "valuator", "type": "address"}],
+                "name": "authorizeValuator",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "valuator", "type": "address"}],
+                "name": "revokeValuator",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "valuationId", "type": "uint256"}],
+                "name": "requestValuationReveal",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "propertyId", "type": "uint256"}],
+                "name": "calculateAverageValuation",
+                "outputs": [
+                    {"internalType": "bool", "name": "hasRevealed", "type": "bool"},
+                    {"internalType": "uint64", "name": "averageValue", "type": "uint64"},
+                    {"internalType": "uint32", "name": "averageConfidence", "type": "uint32"},
+                    {"internalType": "uint256", "name": "valuationCount", "type": "uint256"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "propertyOwner", "type": "address"}],
+                "name": "getOwnerProperties",
+                "outputs": [{"internalType": "uint256[]", "name": "", "type": "uint256[]"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "propertyId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "owner", "type": "address"}
+                ],
+                "name": "PropertyRegistered",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "valuationId", "type": "uint256"},
+                    {"indexed": true, "internalType": "uint256", "name": "propertyId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "valuator", "type": "address"}
+                ],
+                "name": "ValuationSubmitted",
+                "type": "event"
+            }
+        ];
+
+        let provider;
+        let signer;
+        let contract;
+        let userAddress;
+
+        // UI Elements
+        const connectWalletBtn = document.getElementById('connectWallet');
+        const switchNetworkBtn = document.getElementById('switchNetwork');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('statusText');
+
+        // Initialize app
+        async function init() {
+            // Check if ethers is loaded
+            if (typeof ethers === 'undefined') {
+                updateConnectionStatus('Ethers library not loaded. Please refresh the page.', true);
+                return;
+            }
+
+            if (typeof window.ethereum !== 'undefined') {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                updateConnectionStatus('MetaMask detected', false);
+            } else {
+                updateConnectionStatus('MetaMask not detected. Please install MetaMask.', true);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(message, isError = false) {
+            statusText.textContent = message;
+            connectionStatus.className = isError ? 'status-box status-error' : 'status-box status-connected';
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                const network = await provider.getNetwork();
+                if (network.chainId !== 11155111) { // Sepolia testnet
+                    switchNetworkBtn.classList.remove('hidden');
+                    updateConnectionStatus(`Connected to ${userAddress.substring(0, 6)}...${userAddress.substring(38)} (Wrong network)`, true);
+                } else {
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    updateConnectionStatus(`Connected to ${userAddress.substring(0, 6)}...${userAddress.substring(38)} on Sepolia`, false);
+                    connectWalletBtn.textContent = 'Connected';
+                    connectWalletBtn.disabled = true;
+                }
+            } catch (error) {
+                console.error('Connection failed:', error);
+                updateConnectionStatus('Failed to connect wallet', true);
+            }
+        }
+
+        // Switch to Sepolia network
+        async function switchToSepolia() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xaa36a7' }], // Sepolia chainId in hex
+                });
+
+                // Reconnect after network switch
+                setTimeout(connectWallet, 1000);
+                switchNetworkBtn.classList.add('hidden');
+            } catch (error) {
+                console.error('Failed to switch network:', error);
+                updateConnectionStatus('Failed to switch to Sepolia network', true);
+            }
+        }
+
+        // Show/hide loading
+        function toggleLoading(elementId, show) {
+            const loading = document.getElementById(elementId);
+            if (show) {
+                loading.classList.add('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Register property
+        async function registerProperty() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const area = document.getElementById('propertyArea').value;
+            const bedrooms = document.getElementById('propertyBedrooms').value;
+            const bathrooms = document.getElementById('propertyBathrooms').value;
+            const yearBuilt = document.getElementById('propertyYearBuilt').value;
+            const floorLevel = document.getElementById('propertyFloorLevel').value;
+            const locationScore = document.getElementById('propertyLocationScore').value;
+
+            if (!area || !bedrooms || !bathrooms || !yearBuilt || !floorLevel || !locationScore) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                toggleLoading('registerLoading', true);
+
+                const tx = await contract.registerProperty(
+                    parseInt(area),
+                    parseInt(bedrooms),
+                    parseInt(bathrooms),
+                    parseInt(yearBuilt),
+                    parseInt(floorLevel),
+                    parseInt(locationScore)
+                );
+
+                const receipt = await tx.wait();
+
+                // Find PropertyRegistered event
+                const event = receipt.events.find(e => e.event === 'PropertyRegistered');
+                const propertyId = event ? event.args.propertyId.toString() : 'Unknown';
+
+                alert(`Property registered successfully! Property ID: ${propertyId}`);
+
+                // Clear form
+                document.getElementById('propertyArea').value = '';
+                document.getElementById('propertyBedrooms').value = '';
+                document.getElementById('propertyBathrooms').value = '';
+                document.getElementById('propertyYearBuilt').value = '';
+                document.getElementById('propertyFloorLevel').value = '';
+                document.getElementById('propertyLocationScore').value = '';
+
+            } catch (error) {
+                console.error('Registration failed:', error);
+                alert(`Registration failed: ${error.message}`);
+            } finally {
+                toggleLoading('registerLoading', false);
+            }
+        }
+
+        // Submit valuation
+        async function submitValuation() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const propertyId = document.getElementById('valuationPropertyId').value;
+            const amount = document.getElementById('valuationAmount').value;
+            const confidence = document.getElementById('valuationConfidence').value;
+
+            if (!propertyId || !amount || !confidence) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                toggleLoading('valuationLoading', true);
+
+                const tx = await contract.submitValuation(
+                    parseInt(propertyId),
+                    parseInt(amount),
+                    parseInt(confidence)
+                );
+
+                const receipt = await tx.wait();
+
+                // Find ValuationSubmitted event
+                const event = receipt.events.find(e => e.event === 'ValuationSubmitted');
+                const valuationId = event ? event.args.valuationId.toString() : 'Unknown';
+
+                alert(`Valuation submitted successfully! Valuation ID: ${valuationId}`);
+
+                // Clear form
+                document.getElementById('valuationPropertyId').value = '';
+                document.getElementById('valuationAmount').value = '';
+                document.getElementById('valuationConfidence').value = '';
+
+            } catch (error) {
+                console.error('Valuation submission failed:', error);
+                alert(`Valuation submission failed: ${error.message}`);
+            } finally {
+                toggleLoading('valuationLoading', false);
+            }
+        }
+
+        // Load user properties
+        async function loadProperties() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            try {
+                toggleLoading('propertiesLoading', true);
+
+                const properties = await contract.getOwnerProperties(userAddress);
+
+                const propertiesList = document.getElementById('propertiesList');
+                propertiesList.innerHTML = '';
+
+                if (properties.length === 0) {
+                    propertiesList.innerHTML = '<div class="info-text">No properties found.</div>';
+                    return;
+                }
+
+                for (const propertyId of properties) {
+                    const propertyDiv = document.createElement('div');
+                    propertyDiv.className = 'property-item';
+                    propertyDiv.innerHTML = `
+                        <h4>Property #${propertyId.toString()}</h4>
+                        <p>Property registered on blockchain</p>
+                        <p><strong>Owner:</strong> You</p>
+                    `;
+                    propertiesList.appendChild(propertyDiv);
+                }
+
+            } catch (error) {
+                console.error('Failed to load properties:', error);
+                alert(`Failed to load properties: ${error.message}`);
+            } finally {
+                toggleLoading('propertiesLoading', false);
+            }
+        }
+
+        // Request valuation reveal
+        async function requestValuationReveal() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const valuationId = document.getElementById('revealValuationId').value;
+            if (!valuationId) {
+                alert('Please enter a valuation ID');
+                return;
+            }
+
+            try {
+                toggleLoading('managementLoading', true);
+
+                const tx = await contract.requestValuationReveal(parseInt(valuationId));
+                await tx.wait();
+
+                alert('Valuation reveal requested successfully!');
+                document.getElementById('revealValuationId').value = '';
+
+            } catch (error) {
+                console.error('Reveal request failed:', error);
+                alert(`Reveal request failed: ${error.message}`);
+            } finally {
+                toggleLoading('managementLoading', false);
+            }
+        }
+
+        // Get average valuation
+        async function getAverageValuation() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const propertyId = document.getElementById('averagePropertyId').value;
+            if (!propertyId) {
+                alert('Please enter a property ID');
+                return;
+            }
+
+            try {
+                toggleLoading('managementLoading', true);
+
+                const result = await contract.calculateAverageValuation(parseInt(propertyId));
+
+                const resultsDiv = document.getElementById('managementResults');
+                if (result.hasRevealed) {
+                    resultsDiv.innerHTML = `
+                        <div class="valuation-item">
+                            <h4>Average Valuation for Property #${propertyId}</h4>
+                            <p><strong>Average Value:</strong> $${result.averageValue.toString()}</p>
+                            <p><strong>Average Confidence:</strong> ${result.averageConfidence.toString()}%</p>
+                            <p><strong>Number of Valuations:</strong> ${result.valuationCount.toString()}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="info-text">
+                            No revealed valuations found for property #${propertyId}.
+                            Total valuations: ${result.valuationCount.toString()}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Failed to get average valuation:', error);
+                alert(`Failed to get average valuation: ${error.message}`);
+            } finally {
+                toggleLoading('managementLoading', false);
+            }
+        }
+
+        // Authorize valuator
+        async function authorizeValuator() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const address = document.getElementById('valuatorAddress').value;
+            if (!address) {
+                alert('Please enter a valuator address');
+                return;
+            }
+
+            try {
+                toggleLoading('adminLoading', true);
+
+                const tx = await contract.authorizeValuator(address);
+                await tx.wait();
+
+                alert('Valuator authorized successfully!');
+                document.getElementById('valuatorAddress').value = '';
+
+            } catch (error) {
+                console.error('Authorization failed:', error);
+                alert(`Authorization failed: ${error.message}`);
+            } finally {
+                toggleLoading('adminLoading', false);
+            }
+        }
+
+        // Revoke valuator
+        async function revokeValuator() {
+            if (!contract) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const address = document.getElementById('valuatorAddress').value;
+            if (!address) {
+                alert('Please enter a valuator address');
+                return;
+            }
+
+            try {
+                toggleLoading('adminLoading', true);
+
+                const tx = await contract.revokeValuator(address);
+                await tx.wait();
+
+                alert('Valuator revoked successfully!');
+                document.getElementById('valuatorAddress').value = '';
+
+            } catch (error) {
+                console.error('Revocation failed:', error);
+                alert(`Revocation failed: ${error.message}`);
+            } finally {
+                toggleLoading('adminLoading', false);
+            }
+        }
+
+        // Event listeners
+        connectWalletBtn.addEventListener('click', connectWallet);
+        switchNetworkBtn.addEventListener('click', switchToSepolia);
+        document.getElementById('registerProperty').addEventListener('click', registerProperty);
+        document.getElementById('submitValuation').addEventListener('click', submitValuation);
+        document.getElementById('loadProperties').addEventListener('click', loadProperties);
+        document.getElementById('revealValuation').addEventListener('click', requestValuationReveal);
+        document.getElementById('getAverage').addEventListener('click', getAverageValuation);
+        document.getElementById('authorizeValuator').addEventListener('click', authorizeValuator);
+        document.getElementById('revokeValuator').addEventListener('click', revokeValuator);
+
+        // Initialize app when page loads
+        window.addEventListener('load', function() {
+            // Wait a bit for ethers to be fully loaded
+            setTimeout(init, 100);
+        });
+
+        // Listen for account changes
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    updateConnectionStatus('Please connect to MetaMask', true);
+                    connectWalletBtn.textContent = 'Connect MetaMask Wallet';
+                    connectWalletBtn.disabled = false;
+                } else {
+                    connectWallet();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
