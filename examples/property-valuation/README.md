@@ -34,9 +34,13 @@ A revolutionary property valuation platform that enables confidential real estat
 ┌─────────────────────────────────────────────────────────┐
 │                    FRONTEND (React + Vite)               │
 │  ┌────────────────┐  ┌────────────────┐  ┌───────────┐ │
-│  │ RainbowKit     │  │ Wagmi/Viem     │  │ TypeScript│ │
-│  │ Wallet Connect │  │ Web3 Provider  │  │ Type Safe │ │
+│  │ FHEVM SDK      │  │ RainbowKit     │  │ Wagmi/Viem│ │
+│  │ Encryption     │  │ Wallet Connect │  │ Web3      │ │
 │  └────────────────┘  └────────────────┘  └───────────┘ │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ Client-Side FHE: Property values encrypted       │  │
+│  │ before blockchain submission                     │  │
+│  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -50,7 +54,7 @@ A revolutionary property valuation platform that enables confidential real estat
 ┌─────────────────────────────────────────────────────────┐
 │                SEPOLIA TESTNET (Ethereum)                │
 │  Network: Sepolia (Chain ID: 11155111)                  │
-│  Contract: 0x...                                         │
+│  Contract: 0xbc70aFE54495D028586f7E77c257359F1FDf6483   │
 │  Gas Optimized: 800 runs                                 │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -225,28 +229,53 @@ export function App() {
 }
 ```
 
-#### Interact with Contract
+#### Interact with Contract (with FHEVM SDK Encryption)
 
 ```typescript
-import { useContractWrite } from 'wagmi';
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from './contracts';
+import { useWriteContract } from 'wagmi'
+import { useFhevm, useEncrypt } from 'fhevm-sdk'
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from './contract'
 
 function RegisterProperty() {
-  const { write } = useContractWrite({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: 'registerProperty',
-  });
+  const { ready } = useFhevm()
+  const { encrypt, encrypting } = useEncrypt()
+  const { writeContract } = useWriteContract()
 
-  const register = () => {
-    write({
-      args: [1500, 3, 2, 2020, 5, 85], // Sample property data
-    });
-  };
+  const register = async () => {
+    if (!ready) return
 
-  return <button onClick={register}>Register Property</button>;
+    // Encrypt property data on client-side before blockchain submission
+    const encryptedArea = await encrypt(1500, 'uint32')
+    const encryptedBedrooms = await encrypt(3, 'uint32')
+    const encryptedBathrooms = await encrypt(2, 'uint32')
+    const encryptedYearBuilt = await encrypt(2020, 'uint32')
+    const encryptedFloorLevel = await encrypt(5, 'uint32')
+    const encryptedLocationScore = await encrypt(85, 'uint32')
+
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: CONTRACT_ABI,
+      functionName: 'registerProperty',
+      args: [
+        encryptedArea.data,
+        encryptedBedrooms.data,
+        encryptedBathrooms.data,
+        encryptedYearBuilt.data,
+        encryptedFloorLevel.data,
+        encryptedLocationScore.data,
+      ],
+    })
+  }
+
+  return (
+    <button onClick={register} disabled={!ready || encrypting}>
+      {encrypting ? 'Encrypting...' : 'Register Property'}
+    </button>
+  )
 }
 ```
+
+> **Note**: This example demonstrates client-side encryption using the FHEVM SDK before submitting data to the blockchain, ensuring privacy from the moment data leaves the user's browser.
 
 ---
 
@@ -448,6 +477,7 @@ VITE_WALLETCONNECT_PROJECT_ID=YOUR_PROJECT_ID
 - **React**: 18.3.1
 - **Vite**: 5.4.8
 - **TypeScript**: 5.6.2
+- **FHEVM SDK**: (Client-side encryption)
 - **RainbowKit**: 2.1.6 (wallet integration)
 - **Wagmi**: 2.12.12 (React hooks for Ethereum)
 - **Viem**: 2.21.4 (TypeScript interface)

@@ -85,9 +85,11 @@ On-chain transaction evidence is documented in `Transaction Screenshot.png`, dem
 
 - **Blockchain**: Zama fhEVM (Fully Homomorphic Encryption Virtual Machine)
 - **Smart Contracts**: Solidity with FHE encryption libraries
-- **Frontend**: Modern web interface with Web3 integration
-- **Encryption**: Zama's FHE implementation for confidential computing
+- **Frontend**: Standalone HTML/JavaScript application with Web3 integration
+- **Encryption**: FHE operations performed in Solidity smart contract
 - **Network**: Sepolia testnet configuration
+
+> **Note**: This is a standalone HTML/JavaScript version. For a React-based implementation with integrated FHEVM SDK for client-side encryption, see the [`property-valuation`](../property-valuation/) example which uses the [fhevm-sdk](../../packages/fhevm-sdk/) package.
 
 ## 📈 Future Enhancements
 

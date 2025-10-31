@@ -74,7 +74,39 @@ npm run dev
 
 ---
 
-### 4. Vue Demo (Optional)
+### 4. Confidential Property Valuation (React Application)
+**Directory**: `confidential-property-valuation/`
+
+A fully-featured React application demonstrating real-world blockchain integration with privacy-preserving property valuations.
+
+**Features**:
+- ✅ Complete wallet integration (MetaMask)
+- ✅ Network switching (Sepolia testnet)
+- ✅ Property registration with encrypted details
+- ✅ Valuation submission and management
+- ✅ Admin authorization controls
+- ✅ Real-time blockchain interaction
+- ✅ Modern React architecture
+- ✅ TypeScript support
+
+**Quick Start**:
+```bash
+cd confidential-property-valuation
+npm install
+npm run dev
+```
+
+**Technology Stack**:
+- React 18 with TypeScript
+- Vite for development
+- Ethers.js v6
+- Smart contract deployed on Sepolia
+
+**Live Demo**: [Coming Soon]
+
+---
+
+### 5. Vue Demo (Optional)
 **Directory**: `vue-demo/`
 
 A Vue 3 application using the Composition API.
@@ -109,6 +141,7 @@ npm install
 cd examples/nextjs-demo && npm install
 cd examples/react-demo && npm install
 cd examples/property-valuation && npm install
+cd examples/confidential-property-valuation && npm install
 ```
 
 ### Development
@@ -127,6 +160,10 @@ cd react-demo && npm run dev
 # Property Valuation
 cd property-valuation && npm run dev
 # Open http://localhost:5174
+
+# Confidential Property Valuation
+cd confidential-property-valuation && npm run dev
+# Open http://localhost:3002
 ```
 
 ### Production Build
@@ -140,6 +177,9 @@ cd react-demo && npm run build && npm run preview
 
 # Property Valuation
 cd property-valuation && npm run build && npm run preview
+
+# Confidential Property Valuation
+cd confidential-property-valuation && npm run build && npm run preview
 ```
 
 ---
@@ -343,16 +383,17 @@ NEXT_PUBLIC_NETWORK=sepolia
 
 ## 📊 Comparison Matrix
 
-| Feature | Next.js Demo | React Demo | Property Valuation |
-|---------|--------------|------------|-------------------|
-| Framework | Next.js 14 | React 18 | React 18 + Vite |
-| Rendering | SSR + CSR | CSR only | CSR only |
-| Complexity | Simple | Simple | Advanced |
-| Smart Contracts | ❌ | ❌ | ✅ |
-| Decryption | ❌ | ❌ | ✅ |
-| Production Ready | ✅ | ✅ | ✅ |
-| Lines of Code | ~150 | ~130 | ~2000+ |
-| Learning Time | 10 min | 15 min | 30-45 min |
+| Feature | Next.js Demo | React Demo | Property Valuation | Confidential Property Valuation |
+|---------|--------------|------------|--------------------|--------------------------------|
+| Framework | Next.js 14 | React 18 | React 18 + Vite | React 18 + Vite |
+| Rendering | SSR + CSR | CSR only | CSR only | CSR only |
+| Complexity | Simple | Simple | Advanced | Intermediate |
+| Smart Contracts | ❌ | ❌ | ✅ | ✅ |
+| Decryption | ❌ | ❌ | ✅ | ✅ (Ready) |
+| Wallet Integration | ❌ | ❌ | ✅ | ✅ |
+| Production Ready | ✅ | ✅ | ✅ | ✅ |
+| Lines of Code | ~150 | ~130 | ~2000+ | ~800 |
+| Learning Time | 10 min | 15 min | 30-45 min | 20 min |
 
 ---
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useFhevm, useEncrypt } from 'fhevm-sdk'
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contract'
 
 interface Props {
@@ -8,6 +9,9 @@ interface Props {
 
 export default function SubmitValuationForm({ showToast }: Props) {
   const { address } = useAccount()
+  const { ready: fhevmReady } = useFhevm()
+  const { encrypt, encrypting } = useEncrypt()
+
   const [propertyId, setPropertyId] = useState('')
   const [amount, setAmount] = useState('')
   const [confidence, setConfidence] = useState('')
@@ -22,12 +26,25 @@ export default function SubmitValuationForm({ showToast }: Props) {
       return
     }
 
+    if (!fhevmReady) {
+      showToast('FHEVM is not ready yet, please wait...', 'error')
+      return
+    }
+
     try {
+      // Encrypt valuation amount and confidence score
+      showToast('Encrypting valuation data...', 'success')
+
+      const encryptedAmount = await encrypt(BigInt(amount), 'uint64')
+      const encryptedConfidence = await encrypt(parseInt(confidence), 'uint32')
+
+      showToast('Submitting encrypted valuation to blockchain...', 'success')
+
       writeContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'submitValuation',
-        args: [BigInt(propertyId), BigInt(amount), parseInt(confidence)],
+        args: [BigInt(propertyId), encryptedAmount.data, encryptedConfidence.data],
       })
     } catch (err: any) {
       showToast(err.message || 'Failed to submit valuation', 'error')
@@ -91,10 +108,16 @@ export default function SubmitValuationForm({ showToast }: Props) {
 
         <button
           type="submit"
-          disabled={!address || isPending || isConfirming}
+          disabled={!address || !fhevmReady || isPending || isConfirming || encrypting}
           className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending || isConfirming ? 'Submitting...' : 'Submit Valuation'}
+          {encrypting
+            ? 'Encrypting...'
+            : isPending || isConfirming
+            ? 'Submitting...'
+            : !fhevmReady
+            ? 'Initializing FHEVM...'
+            : 'Submit Valuation'}
         </button>
 
         {error && <div className="text-error text-sm">Error: {error.message}</div>}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useFhevm, useEncrypt } from 'fhevm-sdk'
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contract'
 
 interface Props {
@@ -8,6 +9,9 @@ interface Props {
 
 export default function RegisterPropertyForm({ showToast }: Props) {
   const { address } = useAccount()
+  const { ready: fhevmReady } = useFhevm()
+  const { encrypt, encrypting } = useEncrypt()
+
   const [area, setArea] = useState('')
   const [bedrooms, setBedrooms] = useState('')
   const [bathrooms, setBathrooms] = useState('')
@@ -25,18 +29,35 @@ export default function RegisterPropertyForm({ showToast }: Props) {
       return
     }
 
+    if (!fhevmReady) {
+      showToast('FHEVM is not ready yet, please wait...', 'error')
+      return
+    }
+
     try {
+      // Encrypt all property values using FHEVM SDK
+      showToast('Encrypting property data...', 'success')
+
+      const encryptedArea = await encrypt(parseInt(area), 'uint32')
+      const encryptedBedrooms = await encrypt(parseInt(bedrooms), 'uint32')
+      const encryptedBathrooms = await encrypt(parseInt(bathrooms), 'uint32')
+      const encryptedYearBuilt = await encrypt(parseInt(yearBuilt), 'uint32')
+      const encryptedFloorLevel = await encrypt(parseInt(floorLevel), 'uint32')
+      const encryptedLocationScore = await encrypt(parseInt(locationScore), 'uint32')
+
+      showToast('Submitting encrypted property to blockchain...', 'success')
+
       writeContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'registerProperty',
         args: [
-          parseInt(area),
-          parseInt(bedrooms),
-          parseInt(bathrooms),
-          parseInt(yearBuilt),
-          parseInt(floorLevel),
-          parseInt(locationScore),
+          encryptedArea.data,
+          encryptedBedrooms.data,
+          encryptedBathrooms.data,
+          encryptedYearBuilt.data,
+          encryptedFloorLevel.data,
+          encryptedLocationScore.data,
         ],
       })
     } catch (err: any) {
@@ -148,10 +169,16 @@ export default function RegisterPropertyForm({ showToast }: Props) {
 
         <button
           type="submit"
-          disabled={!address || isPending || isConfirming}
+          disabled={!address || !fhevmReady || isPending || isConfirming || encrypting}
           className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending || isConfirming ? 'Registering...' : 'Register Property'}
+          {encrypting
+            ? 'Encrypting...'
+            : isPending || isConfirming
+            ? 'Registering...'
+            : !fhevmReady
+            ? 'Initializing FHEVM...'
+            : 'Register Property'}
         </button>
 
         {error && <div className="text-error text-sm">Error: {error.message}</div>}
